@@ -1,0 +1,130 @@
+dmake_version: 0.1
+app_name: nutanix-runtime
+env:
+  default:
+    source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
+    variables:
+      DEEPOMATIC_RUN_VERSION: 0.1.0
+      NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
+      NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
+      NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+      SRC_NATS_TOPIC: foo
+      DST_NATS_TOPIC: bar
+
+# This deprecated (but currently required so we put a placeholder)
+docker:
+  base_image:
+    name: nutanix-app-base
+    root_image: python:3.6
+    install_scripts:
+      - deploy/base-image.sh
+    copy_files:
+      - deploy/requirements.txt
+
+
+volumes:
+  - neural-worker-resources
+
+
+docker_links:
+  - image_name: nats:1.4.1-linux
+    link_name: nats
+    probe_ports:
+      - 4222/tcp
+    env_exports:
+      NATS_BROKER_URL: nats:4222
+  - image_name: rabbitmq:3.6
+    link_name: rabbitmq
+    probe_ports:
+      - 5672/tcp
+    env:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_VHOST: nutanix
+    env_exports:
+      AMQP_URL: amqp://user:password@rabbitmq:5672/nutanix
+
+services:
+  - service_name: runtime
+    needed_services:
+      - neural-worker
+    needed_links:
+      - rabbitmq
+      - nats
+    config:
+      docker_image:
+        name: deepomatic/nutanix-runtime
+        build:
+          context: runtime
+          dockerfile: Dockerfile
+          labels:
+            vendor: deepomatic
+    deploy:
+      stages:
+        - description: Deploying on Kubernetes
+          branches:
+            - master
+          kubernetes:
+            context: main
+            namespace: dev
+            manifest:
+              template: deploy/k8s-manifest.yml
+              variables:
+                DEEPOMATIC_RUN_VERSION: ${DEEPOMATIC_RUN_VERSION}
+                DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
+                DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
+                DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+                DEPLOYMENT_NAME: nutanix-app
+                DOCKER_HUB_SECRET_NAME: "imagePullSecrets: [{name: docker-hub}]"
+                GPU_FLAG: "{name: ALLOW_NO_GPU, value: \"1\"}"
+                NATS_SERVICE: "- {name: nats, image: nats:1.4.1-linux}"
+
+  - service_name: e2e-test
+    needed_services:
+      - runtime
+    needed_links:
+      - nats
+    tests:
+      timeout: 60
+      commands:
+        - python runtime/test.py
+
+  - service_name: neural-worker
+    needed_links:
+      - rabbitmq
+    needed_services:
+      - resource-server
+    config:
+      need_gpu: true
+      docker_image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
+      env_override:
+        ALLOW_NO_GPU: 1
+        AUTOSTART_WORKER: 'false'
+        MODEL_LOCAL_ROOT: /var/lib/deepomatic/resources
+        LICENSE_FILENAME: /var/lib/deepomatic/resources/license.bin
+        WORKFLOWS_PATH: /var/lib/deepomatic/resources/workflows.json
+      readiness_probe:
+        command:
+          - ls
+          - /tmp/worker-nn-ready
+        period_seconds: 5
+      volumes:
+        - neural-worker-resources:/var/lib/deepomatic
+
+  - service_name: resource-server
+    config:
+      docker_image: deepomatic/run-resource-server:${DEEPOMATIC_RUN_VERSION}
+      env_override:
+        DEEPOMATIC_API_URL: https://api.deepomatic.com
+        DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
+        DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
+        DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+        DOWNLOAD_ON_STARTUP: 1
+      readiness_probe:
+        command:
+          - ls
+          - /tmp/resource-server-ready
+        period_seconds: 5
+      volumes:
+        - source: neural-worker-resources
+          target: /app/services/worker-nn

@@ -1,0 +1,55 @@
+version: "2.4"
+volumes:
+  neural-worker-resources:
+
+services:
+
+  runtime:
+    restart: always
+    image: deepomatic/nutanix-runtime:master-10
+    environment:
+      - AMQP_URL=amqp://user:password@rabbitmq:5672/nutanix
+      - NATS_BROKER_URL=nats:4222
+      - SRC_NATS_TOPIC=foo
+      - DST_NATS_TOPIC=bar
+
+  neural-worker:
+    restart: always
+    image: deepomatic/run-neural-worker:0.1.0
+    environment:
+      - ALLOW_NO_GPU=1
+      - AUTOSTART_WORKER=false
+      - AMQP_URL=amqp://user:password@rabbitmq:5672/nutanix
+      - MODEL_LOCAL_ROOT=/var/lib/deepomatic/resources
+      - LICENSE_FILENAME=/var/lib/deepomatic/resources/license.bin
+      - WORKFLOWS_PATH=/var/lib/deepomatic/resources/workflows.json
+    volumes:
+      - neural-worker-resources:/var/lib/deepomatic
+
+  resource-server:
+    restart: always
+    image: deepomatic/run-resource-server:0.1.0
+    environment:
+      - DEEPOMATIC_API_URL=https://api.deepomatic.com
+      - DEEPOMATIC_APP_ID=${NUTANIX_RUNTIME_APP_ID}
+      - DEEPOMATIC_API_KEY=${NUTANIX_RUNTIME_API_KEY}
+      - DEEPOMATIC_SITE_ID=${NUTANIX_RUNTIME_SITE_ID}
+      - DOWNLOAD_ON_STARTUP=1
+    volumes:
+      - neural-worker-resources:/app/services/worker-nn
+
+  rabbitmq:
+    restart: always
+    image: rabbitmq:3.6
+    expose:
+      - 5672
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+      - RABBITMQ_DEFAULT_VHOST=nutanix
+
+  nats:
+    restart: always
+    image: nats:1.4.1-linux
+    expose:
+      - 4222
