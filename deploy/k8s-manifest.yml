@@ -21,6 +21,25 @@ spec:
       ${DOCKER_HUB_SECRET_NAME}
 
       containers:
+      - name: front
+        image: deepomatic/nutanix-app-front:dev-MQTT-1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 9090
+        - name: rtmp
+          containerPort: 1935
+
+      - name: urlfeed
+        resources:
+          limits:
+            memory: 6Gi
+        image: deepomatic/nutanix-app-urlfeed:dev-MQTT-1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: uwsgihttp
+          containerPort: 9797
+
       - name: runtime
         image: ${DOCKER_IMAGE_NAME}
         env:
@@ -79,3 +98,21 @@ spec:
           value: nutanix
 
       ${NATS_SERVICE}
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: front-svc
+  labels:
+    # This will show the play button in the ui -- do not change
+    uilabel: show-play-http-aba0339ef5aea2602129ed45a63d7d7f
+spec:
+  selector:
+    app: ${DEPLOYMENT_NAME}
+  ports:
+  - protocol: TCP
+    name: http
+    port: 9090
+    nodePort: 30090
+    targetPort: http
+  type: NodePort

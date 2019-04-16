@@ -1,0 +1,81 @@
+//
+// Copyright (c) 2017 Nutanix Inc. All rights reserved.
+//
+// v2 Typography
+//
+@font-face {
+  font-family: 'Ntnx';
+  font-weight: 300;
+  src:
+    url('../assets/fonts/ntnx/Ntnx-Thin.woff') format('woff'),
+    url('../assets/fonts/ntnx/Ntnx-Thin.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ntnx';
+  font-weight: 400;
+  src:
+    url('../assets/fonts/ntnx/Ntnx-Regular.woff') format('woff'),
+    url('../assets/fonts/ntnx/Ntnx-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ntnx';
+  font-weight: 500;
+  src:
+    url('../assets/fonts/ntnx/Ntnx-Medium.woff') format('woff'),
+    url('../assets/fonts/ntnx/Ntnx-Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ntnx';
+  font-weight: 600;
+  src:
+    url('../assets/fonts/ntnx/Ntnx-Semibold.woff') format('woff'),
+    url('../assets/fonts/ntnx/Ntnx-Semibold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Ntnx';
+  font-weight: 700;
+  src:
+    url('../assets/fonts/ntnx/Ntnx-Bold.woff') format('woff'),
+    url('../assets/fonts/ntnx/Ntnx-Bold.ttf') format('truetype');
+}
+
+input, div {
+    font-family: 'Ntnx', Helvetica Neue, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1&,
+h1 {
+  .font-styling(
+    @title-h1-font-size, @title-h1-font-weight,
+    @title-h1-line-height, @title-font-color
+  );
+}
+
+h2&,
+h2 {
+  .font-styling(
+    @title-h2-font-size, @title-h2-font-weight,
+    @title-h2-line-height, @title-font-color
+  );
+}
+
+h3&,
+h3 {
+  .font-styling(
+    @title-h3-font-size, @title-h3-font-weight,
+    @title-h3-line-height, @title-font-color
+  );
+}
+
+h4&,
+h4 {
+  .font-styling(
+    @title-h4-font-size, @title-h4-font-weight,
+    @title-h4-line-height, @title-h4-font-color
+  );
+}

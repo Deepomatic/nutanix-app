@@ -1,0 +1,39 @@
+dmake_version: 0.1
+app_name: nutanix-runtime
+env:
+  default:
+    source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
+
+# This deprecated (but currently required so we put a placeholder)
+docker:
+  base_image:
+    name: nutanix-demo-base
+    root_image: python:3.6
+
+services:
+  - service_name: front
+    config:
+      docker_image:
+        name: deepomatic/nutanix-app-front
+        build:
+          context: front
+          dockerfile: Dockerfile
+          labels:
+            vendor: deepomatic
+      ports:
+        - container_port: 9090
+        - container_port: 1935
+    deploy:
+      stages: []
+
+  - service_name: urlfeed
+    config:
+      docker_image:
+        name: deepomatic/nutanix-app-urlfeed
+        build:
+          context: urlfeed
+          dockerfile: Dockerfile
+          labels:
+            vendor: deepomatic
+    deploy:
+      stages: []
