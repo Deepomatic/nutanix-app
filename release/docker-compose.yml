@@ -9,9 +9,9 @@ services:
     image: deepomatic/nutanix-runtime:master-10
     environment:
       - AMQP_URL=amqp://user:password@rabbitmq:5672/nutanix
-      - NATS_BROKER_URL=nats:4222
-      - SRC_NATS_TOPIC=foo
-      - DST_NATS_TOPIC=bar
+      - NATS_ENDPOINT=nats:4222
+      - NATS_SRC_TOPIC=foo
+      - NATS_DST_TOPIC=bar
 
   neural-worker:
     restart: always

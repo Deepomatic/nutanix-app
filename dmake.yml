@@ -8,8 +8,8 @@ env:
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
-      SRC_NATS_TOPIC: foo
-      DST_NATS_TOPIC: bar
+      NATS_SRC_TOPIC: foo
+      NATS_DST_TOPIC: bar
 
 # This deprecated (but currently required so we put a placeholder)
 docker:
@@ -32,7 +32,7 @@ docker_links:
     probe_ports:
       - 4222/tcp
     env_exports:
-      NATS_BROKER_URL: nats:4222
+      NATS_ENDPOINT: nats:4222
   - image_name: rabbitmq:3.6
     link_name: rabbitmq
     probe_ports:

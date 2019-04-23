@@ -34,19 +34,19 @@ dst_nats_topic = ""
 
 def get_nats_meta():
     global nats_broker_url, src_nats_topic, dst_nats_topic
-    nats_broker_url = os.environ.get('NATS_BROKER_URL')
+    nats_broker_url = os.environ.get('NATS_ENDPOINT')
     if nats_broker_url is None:
-        logger.error('nats broker not provided in environment var NATS_BROKER_URL')
+        logger.error('nats broker not provided in environment var NATS_ENDPOINT')
         exit(1)
 
-    src_nats_topic = os.environ.get('SRC_NATS_TOPIC')
+    src_nats_topic = os.environ.get('NATS_SRC_TOPIC')
     if src_nats_topic is None:
-        logger.error('src nats topic not provided in environment var SRC_NATS_TOPIC')
+        logger.error('src nats topic not provided in environment var NATS_SRC_TOPIC')
         exit(1)
-    dst_nats_topic = os.environ.get('DST_NATS_TOPIC')
+    dst_nats_topic = os.environ.get('NATS_DST_TOPIC')
 
     if dst_nats_topic is None:
-        logger.error('dst nats broker not provided in environment var DST_NATS_TOPIC')
+        logger.error('dst nats broker not provided in environment var NATS_DST_TOPIC')
         exit(1)
     return nats_broker_url, src_nats_topic, dst_nats_topic
 
