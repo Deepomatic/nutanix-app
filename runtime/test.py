@@ -12,17 +12,17 @@ from nats.aio.client import Client as NATS
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-src_nats_topic = os.environ.get('SRC_NATS_TOPIC')
+src_nats_topic = os.environ.get('NATS_SRC_TOPIC')
 if src_nats_topic is None:
-    logger.error("please set SRC_NATS_TOPIC in environment variables")
+    logger.error("please set NATS_SRC_TOPIC in environment variables")
 
-dst_nats_topic = os.environ.get('DST_NATS_TOPIC')
+dst_nats_topic = os.environ.get('NATS_DST_TOPIC')
 if dst_nats_topic is None:
-    logger.error("please set DST_NATS_TOPIC in environment variables")
+    logger.error("please set NATS_DST_TOPIC in environment variables")
 
-nats_broker_url = os.environ.get('NATS_BROKER_URL')
+nats_broker_url = os.environ.get('NATS_ENDPOINT')
 if nats_broker_url is None:
-    logger.error("please set NATS_BROKER_URL in environment variables")
+    logger.error("please set NATS_ENDPOINT in environment variables")
 
 if len(sys.argv) > 1:
     url = sys.argv[1]

@@ -26,11 +26,11 @@ spec:
         env:
         - name: AMQP_URL
           value: amqp://user:password@localhost:5672/nutanix
-        - name: NATS_BROKER_URL
+        - name: NATS_ENDPOINT
           value: localhost:4222
-        - name: SRC_NATS_TOPIC
+        - name: NATS_SRC_TOPIC
           value: foo
-        - name: DST_NATS_TOPIC
+        - name: NATS_DST_TOPIC
           value: bar
 
       - name: neural-worker
