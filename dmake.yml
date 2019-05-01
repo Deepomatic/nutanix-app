@@ -84,6 +84,7 @@ services:
                 DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
                 DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
                 DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+                NUTANIX_RUNTIME_VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
                 DEPLOYMENT_NAME: nutanix-app
                 DOCKER_HUB_SECRET_NAME: "imagePullSecrets: [{name: docker-hub}]"
                 NATS_SERVICE: "- {name: nats, image: nats:1.4.1-linux}"
