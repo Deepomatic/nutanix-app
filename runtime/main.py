@@ -48,16 +48,18 @@ class Config(object):
         Convert environment variable FONT_COLOR from RRGGBB or RGB in hexadecimal format
         to a tuple (R, G, B).
         """
-        color = os.getenv('FONT_COLOR', 'FFFFFF')
-        try:
-            if len(color) == 6:
-                return tuple([int(c, 16) for c in textwrap.wrap(color, 2)])
-            elif len(color) == 3:
-                return tuple([int(c, 16) * 17 for c in color])
-        except ValueError:
-            pass
-        logger.error("Error parsing font color, defaulting to light blue")
-        return (109, 175, 255)
+        color = os.getenv('FONT_COLOR', None)
+        if color is not None:
+            try:
+                if len(color) == 6:
+                    return tuple([int(c, 16) for c in textwrap.wrap(color, 2)])
+                elif len(color) == 3:
+                    return tuple([int(c, 16) * 17 for c in color])
+            except ValueError:
+                pass
+            logger.error("Error parsing font color, defaulting to light blue")
+
+        return (34, 165, 247)
 
 # --------------------------------------------------------------------------- #
 
