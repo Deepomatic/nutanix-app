@@ -5,7 +5,7 @@ env:
     source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
     variables:
       NEURAL_WORKER_VERSION: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
-      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-3
+      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-4
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
@@ -122,8 +122,9 @@ services:
       env_override:
         ALLOW_NO_GPU: 1
         AUTOSTART_WORKER: 'false'
-        DEEPOMATIC_STORAGE_DIR: /var/lib/deepomatic/services/worker-nn/resources
+        DEEPOMATIC_STORAGE_DIR: /var/lib/deepomatic/services/worker-nn
         LICENSE_FILENAME: /var/lib/deepomatic/services/worker-nn/resources/license.bin
+        WORKFLOWS_PATH: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
       readiness_probe:
         command:
           - ls
