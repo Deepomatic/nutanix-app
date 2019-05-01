@@ -132,8 +132,8 @@ services:
           - /tmp/worker-nn-ready
         period_seconds: 5
       volumes:
-        - control:/var/lib/deepomatic/control
-        - resource-server:/var/lib/deepomatic/resource-server
+        - control:/var/lib/deepomatic/control/
+        - resource-server:/var/lib/deepomatic/resource-server/
 
   - service_name: resource-server
     config:
@@ -152,5 +152,5 @@ services:
           - /tmp/resource-server-ready
         period_seconds: 5
       volumes:
-        - control:/var/lib/deepomatic/control
-        - resource-server:/var/lib/deepomatic/resource-server
+        - control:/var/lib/deepomatic/control/
+        - resource-server:/var/lib/deepomatic/resource-server/
