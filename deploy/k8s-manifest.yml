@@ -81,3 +81,22 @@ spec:
           value: nutanix
 
       ${NATS_SERVICE}
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+ name: nginx-svc
+ labels:
+   # This will show the launch button in the ui -- do not change
+   uilabel: show-play-http-aba0339ef5aea2602129ed45a63d7d7f
+spec:
+ selector:
+   app: ${DEPLOYMENT_NAME}
+ ports:
+ - protocol: TCP
+   name: http
+   port: 8080
+   nodePort: 30090
+   targetPort: http
+ type: NodePort
