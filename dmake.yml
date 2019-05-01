@@ -142,7 +142,7 @@ services:
         DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
         DOWNLOAD_ON_STARTUP: 1
         INIT_SYSTEM: circus
-        VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
+        NUTANIX_RUNTIME_VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
       readiness_probe:
         command:
           - ls
