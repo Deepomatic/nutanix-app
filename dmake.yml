@@ -5,7 +5,7 @@ env:
     source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
     variables:
       NEURAL_WORKER_VERSION: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
-      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-2
+      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-3
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
@@ -28,7 +28,6 @@ docker:
 
 
 volumes:
-  - control
   - resource-server
 
 
@@ -123,17 +122,15 @@ services:
       env_override:
         ALLOW_NO_GPU: 1
         AUTOSTART_WORKER: 'false'
-        MODEL_LOCAL_ROOT: /var/lib/deepomatic/resource-server/resources
-        LICENSE_FILENAME: /var/lib/deepomatic/resource-server/resources/license.bin
-        WORKFLOWS_PATH: /var/lib/deepomatic/resource-server/resources/workflows.json
+        DEEPOMATIC_STORAGE_DIR: /var/lib/deepomatic/services/worker-nn/resources
+        LICENSE_FILENAME: /var/lib/deepomatic/services/worker-nn/resources/license.bin
       readiness_probe:
         command:
           - ls
           - /tmp/worker-nn-ready
         period_seconds: 5
       volumes:
-        - control:/var/lib/deepomatic/control/
-        - resource-server:/var/lib/deepomatic/resource-server/
+        - resource-server:/var/lib/deepomatic/
 
   - service_name: resource-server
     config:
@@ -152,5 +149,4 @@ services:
           - /tmp/resource-server-ready
         period_seconds: 5
       volumes:
-        - control:/var/lib/deepomatic/control/
-        - resource-server:/var/lib/deepomatic/resource-server/
+        - resource-server:/var/lib/deepomatic/
