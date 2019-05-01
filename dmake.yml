@@ -102,7 +102,7 @@ services:
     tests:
       timeout: 60
       commands:
-        - python tests/test.py
+        - python tests/e2e_test.py
 
   - service_name: neural-worker
     needed_links:
