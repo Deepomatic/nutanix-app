@@ -8,8 +8,11 @@ env:
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
-      NATS_SRC_TOPIC: foo
-      NATS_DST_TOPIC: bar
+
+      NATS_SRC_TOPIC_IMAGE: src_image
+      NATS_DST_TOPIC_IMAGE: dst_image
+      NATS_SRC_TOPIC_JSON: src_json
+      NATS_DST_TOPIC_JSON: dst_json
 
 # This deprecated (but currently required so we put a placeholder)
 docker:
@@ -17,9 +20,9 @@ docker:
     name: nutanix-app-base
     root_image: python:3.6
     install_scripts:
-      - deploy/base-image.sh
+      - deploy/base/install.sh
     copy_files:
-      - deploy/requirements.txt
+      - deploy/base/requirements.txt
 
 
 volumes:
@@ -59,6 +62,9 @@ services:
           dockerfile: Dockerfile
           labels:
             vendor: deepomatic
+      env_override:
+        DRAW_DEMO: 0
+        FONT_COLOR: 4286f4
     deploy:
       stages:
         - description: Deploying on Kubernetes
@@ -81,13 +87,22 @@ services:
 
   - service_name: e2e-test
     needed_services:
-      - runtime
+      - service_name: runtime
+        env:
+          DRAW_DEMO: 1
+          FONT_COLOR: 4286f4
+          NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_IMAGE}
+          NATS_DST_TOPIC: ${NATS_DST_TOPIC_IMAGE}
+      - service_name: runtime
+        env:
+          NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_JSON}
+          NATS_DST_TOPIC: ${NATS_DST_TOPIC_JSON}
     needed_links:
       - nats
     tests:
       timeout: 60
       commands:
-        - python runtime/test.py
+        - python tests/e2e_test.py
 
   - service_name: neural-worker
     needed_links:

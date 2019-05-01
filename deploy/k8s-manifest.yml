@@ -32,6 +32,8 @@ spec:
           value: foo
         - name: NATS_DST_TOPIC
           value: bar
+        - name: DRAW_DEMO
+          value: 1
 
       - name: neural-worker
         image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
