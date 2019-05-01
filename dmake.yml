@@ -4,10 +4,12 @@ env:
   default:
     source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
     variables:
-      DEEPOMATIC_RUN_VERSION: 0.1.0
+      NEURAL_WORKER_VERSION: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
+      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-2
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+      NUTANIX_RUNTIME_VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
 
       NATS_SRC_TOPIC_IMAGE: src_image
       NATS_DST_TOPIC_IMAGE: dst_image
@@ -77,7 +79,8 @@ services:
             manifest:
               template: deploy/k8s-manifest.yml
               variables:
-                DEEPOMATIC_RUN_VERSION: ${DEEPOMATIC_RUN_VERSION}
+                NEURAL_WORKER_VERSION: ${NEURAL_WORKER_VERSION}
+                RESOURCE_SERVER_VERSION: ${RESOURCE_SERVER_VERSION}
                 DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
                 DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
                 DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
@@ -114,30 +117,32 @@ services:
     needed_services:
       - resource-server
     config:
-      docker_image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
+      docker_image: ${NEURAL_WORKER_VERSION}
       env_override:
         ALLOW_NO_GPU: 1
         AUTOSTART_WORKER: 'false'
-        MODEL_LOCAL_ROOT: /var/lib/deepomatic/resources
-        LICENSE_FILENAME: /var/lib/deepomatic/resources/license.bin
-        WORKFLOWS_PATH: /var/lib/deepomatic/resources/workflows.json
+        MODEL_LOCAL_ROOT: /var/lib/deepomatic/resource-server/resources
+        LICENSE_FILENAME: /var/lib/deepomatic/resource-server/resources/license.bin
+        WORKFLOWS_PATH: /var/lib/deepomatic/resource-server/resources/workflows.json
       readiness_probe:
         command:
           - ls
           - /tmp/worker-nn-ready
         period_seconds: 5
       volumes:
-        - neural-worker-resources:/var/lib/deepomatic
+        - neural-worker-resources:/var/lib/deepomatic/resource-server
 
   - service_name: resource-server
     config:
-      docker_image: deepomatic/run-resource-server:${DEEPOMATIC_RUN_VERSION}
+      docker_image: ${RESOURCE_SERVER_VERSION}
       env_override:
         DEEPOMATIC_API_URL: https://api.deepomatic.com
         DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
         DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
         DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
         DOWNLOAD_ON_STARTUP: 1
+        INIT_SYSTEM: circus
+        VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
       readiness_probe:
         command:
           - ls
@@ -145,4 +150,4 @@ services:
         period_seconds: 5
       volumes:
         - source: neural-worker-resources
-          target: /app/services/worker-nn
+          target: /var/lib/deepomatic/resource-server
