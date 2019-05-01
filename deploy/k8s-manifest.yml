@@ -28,7 +28,9 @@ spec:
           value: amqp://user:password@localhost:5672/nutanix
         - name: DRAW_DEMO
           value: "1"
-        ${NATS_TOPICS}
+        ${NATS_ENDPOINT}
+        ${NATS_SRC_TOPIC}
+        ${NATS_DST_TOPIC}
 
       - name: neural-worker
         image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}

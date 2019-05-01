@@ -84,7 +84,9 @@ services:
                 DEPLOYMENT_NAME: nutanix-app
                 DOCKER_HUB_SECRET_NAME: "imagePullSecrets: [{name: docker-hub}]"
                 NATS_SERVICE: "- {name: nats, image: nats:1.4.1-linux}"
-                NATS_TOPICS: "- {name: NATS_ENDPOINT, value: localhost:4222}\n- {name: NATS_SRC_TOPIC, value: foo}\n- {name: NATS_DST_TOPIC, value: bar}"
+                NATS_ENDPOINT: "- {name: NATS_ENDPOINT, value: localhost:4222}"
+                NATS_SRC_TOPIC: "- {name: NATS_SRC_TOPIC, value: foo}"
+                NATS_DST_TOPIC: "- {name: NATS_DST_TOPIC, value: bar}"
 
   - service_name: e2e-test
     needed_services:
