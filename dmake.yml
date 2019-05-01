@@ -72,7 +72,7 @@ services:
         - description: Deploying on Kubernetes
           branches:
             - master
-            - dev-fix-kube-config
+            - dev-show-http
           kubernetes:
             context: main
             namespace: dev
