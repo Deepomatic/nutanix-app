@@ -26,9 +26,12 @@ class Config(object):
         # Should we draw a label or just pass inference results ?
         self.draw_demo = os.getenv('DRAW_DEMO') == "1"
 
-        # configure drawing font
+        # Configure drawing font
         self.font = ImageFont.truetype(os.path.join(os.path.dirname(__file__), "assets", "fonts", "arial.ttf"), 48)
         self.font_color = self.get_font_color()
+
+        # Configure frames to process
+        self.process_each_n_frames = int(os.getenv('PROCESS_EACH_N_FRAMES', '1'))
 
         # Setup deepomatic Run RPC client
         amqp_url = os.getenv('AMQP_URL')
@@ -64,7 +67,11 @@ class MessageHandler(object):
         self._config = config
 
         # Setup Nutanix NATS client
-        self.nats_helper = NATSHelper()
+        self._nats_helper = NATSHelper()
+
+        # Internal state
+        self._image_counter = 0
+        self._last_inference_result = None
 
     def send_inference_request(self, image):
         """
@@ -104,24 +111,26 @@ class MessageHandler(object):
 
     async def message_handler(self, image):
         # Perform inference
-        inference_result = self.send_inference_request(image)
+        if self._image_counter % self._config.process_each_n_frames == 0:
+            self._last_inference_result = self.send_inference_request(image)
 
         if self._config.draw_demo:
             # Draw label on the image
-            payload = self.draw_label(image, inference_result)
+            payload = self.draw_label(image, self._last_inference_result)
         else:
-            payload = json.dumps(inference_result).encode('utf8')
+            payload = json.dumps(self._last_inference_result).encode('utf8')
 
-        # Send the result image
-        await self.nats_helper.publish(payload)
+        # Increment counter and send the result
+        self._image_counter += 1
+        await self._nats_helper.publish(payload)
 
     def run_forever(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.nats_helper.connect(loop, self.message_handler))
+        loop.run_until_complete(self._nats_helper.connect(loop, self.message_handler))
         try:
             loop.run_forever()
         finally:
-            self.nats_helper.close()
+            self._nats_helper.close()
             loop.close()
 
 

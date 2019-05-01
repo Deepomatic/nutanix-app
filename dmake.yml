@@ -96,6 +96,7 @@ services:
           FONT_COLOR: 4286f4
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_IMAGE}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_IMAGE}
+          PROCESS_EACH_N_FRAMES: 8
       - service_name: runtime
         env:
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_JSON}
