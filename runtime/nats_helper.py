@@ -14,6 +14,7 @@ class NATSHelper(object):
 
     def __init__(self, nats_broker_url=None, nats_src_topic=None, nats_dst_topic=None):
         self.subscribe_id = None
+        self.connected = False
         self.nats_client = NATS()
 
         self._get_config_from_env_var_('nats_broker_url', 'NATS_ENDPOINT', nats_broker_url, 'NATS broker')
@@ -82,6 +83,7 @@ class NATSHelper(object):
         try:
             # This will return immediately if the server is not listening on the given URL
             await self.nats_client.connect(self.nats_broker_url, loop=loop)
+            self.connected = True
             logger.info("Connected to broker, subscribing to topic '{}'".format(self.nats_src_topic))
 
             self.subscribe_id = await self.nats_client.subscribe(self.nats_src_topic, cb=receive_cb)
@@ -98,7 +100,8 @@ class NATSHelper(object):
             self.subscribe_id = None
 
         # Terminate connection to NATS.
-        if self.nats_client is not None:
+        if self.nats_client is not None and self.connected:
             self.nats_client.drain()
             loop.run_until_complete(self.nats_client.close())
             self.nats_client = None
+            self.connected = False
