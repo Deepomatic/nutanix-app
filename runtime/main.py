@@ -1,3 +1,4 @@
+import json
 import os
 import asyncio
 import logging
@@ -6,12 +7,11 @@ import io
 from PIL import Image, ImageFont, ImageDraw
 from google.protobuf.json_format import MessageToDict
 
-import xi_iot_pb2
-from nats.aio.client import Client as NATS
-
 from deepomatic.rpc.client import Client
 from deepomatic.rpc import v07_ImageInput
 from deepomatic.rpc.helpers.v07_proto import create_images_input_mix, create_workflow_command_mix
+
+from nats_helper import NATSHelper
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class Config(object):
         self.draw_demo = os.getenv('DRAW_DEMO') == "1"
 
         # configure drawing font
-        self.font = ImageFont.truetype(os.path.join(os.path.dirname(__file__), "arial.ttf"), 48)
+        self.font = ImageFont.truetype(os.path.join(os.path.dirname(__file__), "assets", "fonts", "arial.ttf"), 48)
         self.font_color = self.get_font_color()
 
         # Setup deepomatic Run RPC client
@@ -38,25 +38,6 @@ class Config(object):
         self.amqp_client = Client(amqp_url)
         self.amqp_client.new_queue(self.command_queue_name)
         self.amqp_response_queue, self.amqp_consumer = self.amqp_client.new_consuming_queue()
-
-        # Setup Nutanix NATS client
-        self.nats_client = NATS()
-        self.nats_broker_url = os.environ.get('NATS_ENDPOINT')
-        if self.nats_broker_url is None:
-            raise Exception('nats broker not provided in environment var NATS_ENDPOINT')
-
-        self.nats_src_topic = os.environ.get('NATS_SRC_TOPIC')
-        if self.nats_src_topic is None:
-            raise Exception('src nats topic not provided in environment var NATS_SRC_TOPIC')
-
-        self.nats_dst_topic = os.environ.get('NATS_DST_TOPIC')
-        if self.nats_dst_topic is None:
-            raise Exception('dst nats broker not provided in environment var NATS_DST_TOPIC')
-
-        logger.info("broker: {b}, src topic: {s}, dst_topic: {d}".format(
-            b=self.nats_broker_url,
-            s=self.nats_src_topic,
-            d=self.nats_dst_topic))
 
     @staticmethod
     def get_font_color():
@@ -72,8 +53,8 @@ class Config(object):
                 return tuple([int(c, 16) * 17 for c in color])
         except ValueError:
             pass
-        logger.error("Error parsing font color, defaulting to white")
-        return (255, 255, 255)
+        logger.error("Error parsing font color, defaulting to light blue")
+        return (109, 175, 255)
 
 # --------------------------------------------------------------------------- #
 
@@ -82,23 +63,8 @@ class MessageHandler(object):
     def __init__(self, config):
         self._config = config
 
-    @staticmethod
-    def image_from_message(msg):
-        """
-        Convert input payload into an image
-        """
-        _msg = xi_iot_pb2.DataStreamMessage()
-        _msg.ParseFromString(msg.data)
-        return _msg.payload
-
-    @staticmethod
-    def message_from_image(image):
-        """
-        Convert image into output payload
-        """
-        msg = xi_iot_pb2.DataStreamMessage()
-        msg.payload = image
-        return msg.SerializeToString()
+        # Setup Nutanix NATS client
+        self.nats_helper = NATSHelper()
 
     def send_inference_request(self, image):
         """
@@ -136,47 +102,26 @@ class MessageHandler(object):
             img.save(buff, format="JPEG")
             return buff.getvalue()
 
-    async def message_handler(self, msg):
-        try:
-            logger.info("Received a message!")
-            image = self.image_from_message(msg)
+    async def message_handler(self, image):
+        # Perform inference
+        inference_result = self.send_inference_request(image)
 
-            # Perform inference
-            inference_result = self.send_inference_request(image)
-
+        if self._config.draw_demo:
             # Draw label on the image
-            image = self.draw_label(image, inference_result)
+            payload = self.draw_label(image, inference_result)
+        else:
+            payload = json.dumps(inference_result).encode('utf8')
 
-            # Send the result image
-            await self.send_result(self.message_from_image(image))
+        # Send the result image
+        await self.nats_helper.publish(payload)
 
-        except Exception as e:
-            # Catch an display errors which are otherwise not shown
-            logger.error("{}".format(e))
-
-    async def send_result(self, msg):
-        # RFC: We could leverage `reply` topic as the destination topic which would not require NATS_DST_TOPIC to be provided
-        # await nc.publish(reply, data)
-        await self._config.nats_client.publish(self._config.nats_dst_topic, msg)
-
-    async def connect(self, loop):
-        try:
-            # This will return immediately if the server is not listening on the given URL
-            await self._config.nats_client.connect(self._config.nats_broker_url, loop=loop)
-            logger.info("Connected to broker")
-
-            await self._config.nats_client.subscribe(self._config.nats_src_topic, cb=self.message_handler)
-        except Exception as e:
-            # Catch an display errors which are otherwise not shown
-            logger.error("{}".format(e))
-
-    def run(self):
+    def run_forever(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self.connect(loop))
+        loop.run_until_complete(self.nats_helper.connect(loop, self.message_handler))
         try:
             loop.run_forever()
         finally:
-            self._config.nats_client.drain()
+            self.nats_helper.close()
             loop.close()
 
 
@@ -185,4 +130,4 @@ class MessageHandler(object):
 if __name__ == '__main__':
     config = Config()
     handler = MessageHandler(config)
-    handler.run()
+    handler.run_forever()

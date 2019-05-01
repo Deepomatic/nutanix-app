@@ -34,8 +34,6 @@ spec:
           value: bar
         - name: DRAW_DEMO
           value: 1
-        - name: FONT_COLOR
-          value: 4286f4
 
       - name: neural-worker
         image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
