@@ -114,7 +114,6 @@ services:
     needed_services:
       - resource-server
     config:
-      need_gpu: true
       docker_image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
       env_override:
         ALLOW_NO_GPU: 1
