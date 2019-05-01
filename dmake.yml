@@ -28,7 +28,8 @@ docker:
 
 
 volumes:
-  - neural-worker-resources
+  - control
+  - resource-server
 
 
 docker_links:
@@ -131,7 +132,8 @@ services:
           - /tmp/worker-nn-ready
         period_seconds: 5
       volumes:
-        - neural-worker-resources:/var/lib/deepomatic/resource-server
+        - control:/var/lib/deepomatic/control
+        - resource-server:/var/lib/deepomatic/resource-server
 
   - service_name: resource-server
     config:
@@ -150,5 +152,5 @@ services:
           - /tmp/resource-server-ready
         period_seconds: 5
       volumes:
-        - source: neural-worker-resources
-          target: /var/lib/deepomatic/resource-server
+        - control:/var/lib/deepomatic/control
+        - resource-server:/var/lib/deepomatic/resource-server

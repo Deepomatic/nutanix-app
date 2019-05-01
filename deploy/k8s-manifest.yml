@@ -16,7 +16,9 @@ spec:
     spec:
       restartPolicy: Always
       volumes:
-        - name: neural-worker-resources
+        - name: resource-server
+          emptyDir: {}
+        - name: control
           emptyDir: {}
       ${DOCKER_HUB_SECRET_NAME}
 
@@ -52,8 +54,11 @@ spec:
         - name: WORKFLOWS_PATH
           value: /var/lib/deepomatic/resource-server/resources/workflows.json
         volumeMounts:
-          - mountPath: /var/lib/deepomatic/resource-server/
-            name: neural-worker-resources
+          - name: resource-server
+            mountPath: /var/lib/deepomatic/resource-server/
+          - name: control
+            mountPath: /var/lib/deepomatic/control/
+            
 
       - name: resource-server
         image: ${RESOURCE_SERVER_VERSION}
@@ -71,8 +76,10 @@ spec:
         - name: VOUCHER
           value: ${NUTANIX_RUNTIME_VOUCHER}
         volumeMounts:
-          - mountPath: /var/lib/deepomatic/resource-server
-            name: neural-worker-resources
+          - name: resource-server
+            mountPath: /var/lib/deepomatic/resource-server/
+          - name: control
+            mountPath: /var/lib/deepomatic/control/
 
       - name: rabbitmq
         image: rabbitmq:3.6
