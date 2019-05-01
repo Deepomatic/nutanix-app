@@ -26,19 +26,17 @@ spec:
         env:
         - name: AMQP_URL
           value: amqp://user:password@localhost:5672/nutanix
-        - name: NATS_ENDPOINT
-          value: localhost:4222
-        - name: NATS_SRC_TOPIC
-          value: foo
-        - name: NATS_DST_TOPIC
-          value: bar
         - name: DRAW_DEMO
-          value: 1
+          value: "1"
+        ${NATS_ENDPOINT}
+        ${NATS_SRC_TOPIC}
+        ${NATS_DST_TOPIC}
 
       - name: neural-worker
         image: deepomatic/run-neural-worker:${DEEPOMATIC_RUN_VERSION}
         env:
-        - ${GPU_FLAG}
+        - name: ALLOW_NO_GPU
+          value: "1"
         - name: AUTOSTART_WORKER
           value: "false"
         - name: AMQP_URL

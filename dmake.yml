@@ -70,6 +70,7 @@ services:
         - description: Deploying on Kubernetes
           branches:
             - master
+            - dev-fix-kube-config
           kubernetes:
             context: main
             namespace: dev
@@ -82,8 +83,10 @@ services:
                 DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
                 DEPLOYMENT_NAME: nutanix-app
                 DOCKER_HUB_SECRET_NAME: "imagePullSecrets: [{name: docker-hub}]"
-                GPU_FLAG: "{name: ALLOW_NO_GPU, value: \"1\"}"
                 NATS_SERVICE: "- {name: nats, image: nats:1.4.1-linux}"
+                NATS_ENDPOINT: "- {name: NATS_ENDPOINT, value: localhost:4222}"
+                NATS_SRC_TOPIC: "- {name: NATS_SRC_TOPIC, value: foo}"
+                NATS_DST_TOPIC: "- {name: NATS_DST_TOPIC, value: bar}"
 
   - service_name: e2e-test
     needed_services:
