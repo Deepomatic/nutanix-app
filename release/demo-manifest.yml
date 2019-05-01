@@ -1,28 +1,28 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${DEPLOYMENT_NAME}
+  name: deepomatic-app
   labels:
-    app: ${DEPLOYMENT_NAME}
+    app: deepomatic-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ${DEPLOYMENT_NAME}
+      app: deepomatic-app
   template:
     metadata:
       labels:
-        app: ${DEPLOYMENT_NAME}
+        app: deepomatic-app
     spec:
       restartPolicy: Always
       volumes:
         - name: resource-server
           emptyDir: {}
-      ${DOCKER_HUB_SECRET_NAME}
+
 
       containers:
       - name: runtime
-        image: ${DOCKER_IMAGE_NAME}
+        image: deepomatic/nutanix-runtime:master-22
         imagePullPolicy: IfNotPresent
         env:
         - name: AMQP_URL
@@ -30,13 +30,13 @@ spec:
         - name: DRAW_DEMO
           value: "1"
         - name: PROCESS_EACH_N_FRAMES
-          value: "20"
-        ${NATS_ENDPOINT}
-        ${NATS_SRC_TOPIC}
-        ${NATS_DST_TOPIC}
+          value: "10"
+
+
+
 
       - name: neural-worker
-        image: ${NEURAL_WORKER_VERSION}
+        image: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
         imagePullPolicy: IfNotPresent
         env:
         - name: ALLOW_NO_GPU
@@ -56,7 +56,7 @@ spec:
 
 
       - name: resource-server
-        image: ${RESOURCE_SERVER_VERSION}
+        image: deepomatic/resource-server-on-premises-rc:master2-7
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -64,12 +64,16 @@ spec:
         env:
         - name: DEEPOMATIC_API_URL
           value: https://api.deepomatic.com
+        - name: DEEPOMATIC_APP_ID
+          value: "853338560558"
+        - name: DEEPOMATIC_API_KEY
+          value: "44f93d7dedc94c5c9c6eb7e5d5816e4c"
+        - name: DEEPOMATIC_SITE_ID
+          value: "56717610-da3c-4ee7-aa96-38830c35c1ba"
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
         - name: INIT_SYSTEM
           value: circus
-        - name: VOUCHER
-          value: ${NUTANIX_RUNTIME_VOUCHER}
         volumeMounts:
           - name: resource-server
             mountPath: /app
@@ -84,5 +88,3 @@ spec:
           value: password
         - name: RABBITMQ_DEFAULT_VHOST
           value: nutanix
-
-      ${NATS_SERVICE}
