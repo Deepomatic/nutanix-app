@@ -123,7 +123,7 @@ services:
         ALLOW_NO_GPU: 1
         AUTOSTART_WORKER: 'false'
         DEEPOMATIC_STORAGE_DIR: /var/lib/deepomatic/services/worker-nn
-        LICENSE_FILENAME: /var/lib/deepomatic/services/worker-nn/resources/license.bin
+        LICENSE_FILENAME: /var/lib/deepomatic/services/worker-nn/license.bin
         WORKFLOWS_PATH: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
       readiness_probe:
         command:
@@ -150,4 +150,4 @@ services:
           - /tmp/resource-server-ready
         period_seconds: 5
       volumes:
-        - resource-server:/var/lib/deepomatic/
+        - resource-server:/app
