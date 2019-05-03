@@ -5,7 +5,7 @@ env:
     source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
     variables:
       NEURAL_WORKER_VERSION: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
-      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-8
+      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-9
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}

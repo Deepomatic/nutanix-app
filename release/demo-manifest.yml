@@ -1,0 +1,90 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deepomatic-app
+  labels:
+    app: deepomatic-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: deepomatic-app
+  template:
+    metadata:
+      labels:
+        app: deepomatic-app
+    spec:
+      restartPolicy: Always
+      volumes:
+        - name: resource-server
+          emptyDir: {}
+
+
+      containers:
+      - name: runtime
+        image: deepomatic/nutanix-runtime:master-22
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AMQP_URL
+          value: amqp://user:password@localhost:5672/nutanix
+        - name: DRAW_DEMO
+          value: "1"
+        - name: PROCESS_EACH_N_FRAMES
+          value: "10"
+
+
+
+
+      - name: neural-worker
+        image: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ALLOW_NO_GPU
+          value: "1"
+        - name: AUTOSTART_WORKER
+          value: "false"
+        - name: AMQP_URL
+          value: amqp://user:password@localhost:5672/nutanix
+        - name: DEEPOMATIC_STORAGE_DIR
+          value: /var/lib/deepomatic/services/worker-nn
+        - name: WORKFLOWS_PATH
+          value: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
+        volumeMounts:
+          - name: resource-server
+            mountPath: /var/lib/deepomatic
+
+
+
+      - name: resource-server
+        image: deepomatic/resource-server-on-premises-rc:master2-7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 8080
+        env:
+        - name: DEEPOMATIC_API_URL
+          value: https://api.deepomatic.com
+        - name: DEEPOMATIC_APP_ID
+          value: "853338560558"
+        - name: DEEPOMATIC_API_KEY
+          value: "44f93d7dedc94c5c9c6eb7e5d5816e4c"
+        - name: DEEPOMATIC_SITE_ID
+          value: "56717610-da3c-4ee7-aa96-38830c35c1ba"
+        - name: DOWNLOAD_ON_STARTUP
+          value: "1"
+        - name: INIT_SYSTEM
+          value: circus
+        volumeMounts:
+          - name: resource-server
+            mountPath: /app
+
+      - name: rabbitmq
+        image: rabbitmq:3.6
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: user
+        - name: RABBITMQ_DEFAULT_PASS
+          value: password
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: nutanix
