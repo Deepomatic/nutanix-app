@@ -30,7 +30,7 @@ spec:
         - name: DRAW_DEMO
           value: "1"
         - name: PROCESS_EACH_N_FRAMES
-          value: "20"
+          value: "25"
         ${NATS_ENDPOINT}
         ${NATS_SRC_TOPIC}
         ${NATS_DST_TOPIC}
@@ -64,12 +64,14 @@ spec:
         env:
         - name: DEEPOMATIC_API_URL
           value: https://api.deepomatic.com
+        - name: DEEPOMATIC_APP_ID
+          value: "${DEEPOMATIC_APP_ID}"
+        - name: DEEPOMATIC_API_KEY
+          value: "${DEEPOMATIC_API_KEY}"
+        - name: DEEPOMATIC_SITE_ID
+          value: "${DEEPOMATIC_SITE_ID}"
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
-        - name: INIT_SYSTEM
-          value: circus
-        - name: VOUCHER
-          value: ${NUTANIX_RUNTIME_VOUCHER}
         volumeMounts:
           - name: resource-server
             mountPath: /app
