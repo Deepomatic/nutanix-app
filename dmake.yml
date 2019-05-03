@@ -58,7 +58,7 @@ services:
       - nats
     config:
       docker_image:
-        name: deepomatic/nutanix-app
+        name: deepomatic/nutanix-app-rc
         build:
           context: runtime
           dockerfile: Dockerfile
