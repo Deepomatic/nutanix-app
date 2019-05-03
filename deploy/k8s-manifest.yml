@@ -15,7 +15,7 @@ spec:
         app: ${DEPLOYMENT_NAME}
     spec:
       restartPolicy: Always
-      volumes:       
+      volumes:
         - name: resource-server
           emptyDir: {}
       ${DOCKER_HUB_SECRET_NAME}
@@ -47,15 +47,13 @@ spec:
           value: amqp://user:password@localhost:5672/nutanix
         - name: DEEPOMATIC_STORAGE_DIR
           value: /var/lib/deepomatic/services/worker-nn
-        - name: LICENSE_FILENAME
-          value: /var/lib/deepomatic/services/worker-nn/resources/license.bin
         - name: WORKFLOWS_PATH
           value: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
         volumeMounts:
           - name: resource-server
             mountPath: /var/lib/deepomatic
-          
-            
+
+
 
       - name: resource-server
         image: ${RESOURCE_SERVER_VERSION}
@@ -65,7 +63,7 @@ spec:
           containerPort: 8080
         env:
         - name: DEEPOMATIC_API_URL
-          value: https://api.deepomatic.com        
+          value: https://api.deepomatic.com
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
         - name: INIT_SYSTEM
@@ -74,7 +72,7 @@ spec:
           value: ${NUTANIX_RUNTIME_VOUCHER}
         volumeMounts:
           - name: resource-server
-            mountPath: /var/lib/deepomatic
+            mountPath: /app
 
       - name: rabbitmq
         image: rabbitmq:3.6
