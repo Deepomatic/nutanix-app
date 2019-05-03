@@ -50,7 +50,7 @@ docker_links:
       AMQP_URL: amqp://user:password@rabbitmq:5672/nutanix
 
 services:
-  - service_name: runtime
+  - service_name: app
     needed_services:
       - neural-worker
     needed_links:
@@ -58,7 +58,7 @@ services:
       - nats
     config:
       docker_image:
-        name: deepomatic/nutanix-runtime
+        name: deepomatic/nutanix-app
         build:
           context: runtime
           dockerfile: Dockerfile
@@ -94,14 +94,14 @@ services:
 
   - service_name: e2e-test
     needed_services:
-      - service_name: runtime
+      - service_name: app
         env:
           DRAW_DEMO: 1
           FONT_COLOR: 4286f4
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_IMAGE}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_IMAGE}
           PROCESS_EACH_N_FRAMES: 30
-      - service_name: runtime
+      - service_name: app
         env:
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_JSON}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_JSON}
