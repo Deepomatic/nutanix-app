@@ -4,8 +4,8 @@ env:
   default:
     source: ${DEEPOMATIC_CONFIG_DIR}/dev.sh
     variables:
-      NEURAL_WORKER_VERSION: deepomatic/vulcan-worker-nn-on-premises-rc:master-495-combo
-      RESOURCE_SERVER_VERSION: deepomatic/resource-server-on-premises-rc:master2-9
+      NEURAL_WORKER_VERSION: deepomatic/run-neural-worker:0.2.0-rc.1
+      RESOURCE_SERVER_VERSION: deepomatic/run-resource-server:0.2.0-rc.1
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
@@ -72,7 +72,7 @@ services:
         - description: Deploying on Kubernetes
           branches:
             - master
-            - dev-show-http
+            - release
           kubernetes:
             context: main
             namespace: dev
@@ -100,7 +100,7 @@ services:
           FONT_COLOR: 4286f4
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_IMAGE}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_IMAGE}
-          PROCESS_EACH_N_FRAMES: 20
+          PROCESS_EACH_N_FRAMES: 30
       - service_name: runtime
         env:
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_JSON}
