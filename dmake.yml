@@ -93,6 +93,11 @@ services:
                 NATS_SRC_TOPIC: "- {name: NATS_SRC_TOPIC, value: foo}"
                 NATS_DST_TOPIC: "- {name: NATS_DST_TOPIC, value: bar}"
                 STORAGE_CLASS: standard
+                # HACK to inject dollars
+                http_host: '\$http_host'
+                remote_addr: '\$remote_addr'
+                proxy_add_x_forwarded_for: '\$proxy_add_x_forwarded_for'
+
 
   - service_name: e2e-test
     needed_services:
