@@ -1,31 +1,23 @@
 apiVersion: apps/v1
-kind: StatefulSet
+kind: Deployment
 metadata:
   name: ${DEPLOYMENT_NAME}
   labels:
     app: ${DEPLOYMENT_NAME}
 spec:
-  serviceName: ${DEPLOYMENT_NAME}
   replicas: 1
   selector:
     matchLabels:
       app: ${DEPLOYMENT_NAME}
-  volumeClaimTemplates:
-    - metadata:
-        name: deepomatic-resources
-      spec:
-        storageClassName: ${STORAGE_CLASS}
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Gi
   template:
     metadata:
       labels:
         app: ${DEPLOYMENT_NAME}
     spec:
       restartPolicy: Always
-      ${DOCKER_HUB_SECRET_NAME}
+      volumes:
+        - name: resource-server
+          emptyDir: {}
 
       containers:
       - name: runtime
@@ -57,7 +49,7 @@ spec:
         - name: WORKFLOWS_PATH
           value: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
         volumeMounts:
-          - name: deepomatic-resources
+          - name: resource-server
             mountPath: /var/lib/deepomatic
 
 
@@ -71,14 +63,18 @@ spec:
         env:
         - name: DEEPOMATIC_API_URL
           value: https://api.deepomatic.com
+        - name: DEEPOMATIC_APP_ID
+          value: "${DEEPOMATIC_APP_ID}"
+        - name: DEEPOMATIC_API_KEY
+          value: "${DEEPOMATIC_API_KEY}"
+        - name: DEEPOMATIC_SITE_ID
+          value: "${DEEPOMATIC_SITE_ID}"
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
         - name: INIT_SYSTEM
           value: circus
-        - name: VOUCHER
-          value: DotNext2019
         volumeMounts:
-          - name: deepomatic-resources
+          - name: resource-server
             mountPath: /app
 
       - name: rabbitmq
@@ -91,21 +87,3 @@ spec:
           value: password
         - name: RABBITMQ_DEFAULT_VHOST
           value: nutanix
-
-      ${NATS_SERVICE}
-
-
----
-
-kind: Service
-apiVersion: v1
-metadata:
- name: ${DEPLOYMENT_NAME}-nginx-svc
-spec:
- selector:
-   app: ${DEPLOYMENT_NAME}
- ports:
- - protocol: TCP
-   name: http
-   port: 8080
- type: NodePort
