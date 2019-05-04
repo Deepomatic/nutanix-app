@@ -2,9 +2,6 @@ import json
 import os
 import asyncio
 import logging
-import textwrap
-import io
-from PIL import Image, ImageFont, ImageDraw
 from google.protobuf.json_format import MessageToDict
 
 from deepomatic.rpc.client import Client
@@ -12,6 +9,7 @@ from deepomatic.rpc import v07_ImageInput
 from deepomatic.rpc.helpers.v07_proto import create_images_input_mix, create_workflow_command_mix
 
 from nats_helper import NATSHelper
+from draw import draw_predictions
 
 logger = logging.getLogger(__name__)
 
@@ -26,10 +24,6 @@ class Config(object):
         # Should we draw a label or just pass inference results ?
         self.draw_demo = os.getenv('DRAW_DEMO') == "1"
 
-        # Configure drawing font
-        self.font = ImageFont.truetype(os.path.join(os.path.dirname(__file__), "assets", "fonts", "arial.ttf"), 48)
-        self.font_color = self.get_font_color()
-
         # Configure frames to process
         self.process_each_n_frames = int(os.getenv('PROCESS_EACH_N_FRAMES', '1'))
 
@@ -41,25 +35,6 @@ class Config(object):
         self.amqp_client = Client(amqp_url)
         self.amqp_client.new_queue(self.command_queue_name)
         self.amqp_response_queue, self.amqp_consumer = self.amqp_client.new_consuming_queue()
-
-    @staticmethod
-    def get_font_color():
-        """
-        Convert environment variable FONT_COLOR from RRGGBB or RGB in hexadecimal format
-        to a tuple (R, G, B).
-        """
-        color = os.getenv('FONT_COLOR', None)
-        if color is not None:
-            try:
-                if len(color) == 6:
-                    return tuple([int(c, 16) for c in textwrap.wrap(color, 2)])
-                elif len(color) == 3:
-                    return tuple([int(c, 16) * 17 for c in color])
-            except ValueError:
-                pass
-            logger.error("Error parsing font color, defaulting to light blue")
-
-        return (34, 165, 247)
 
 # --------------------------------------------------------------------------- #
 
@@ -99,18 +74,6 @@ class MessageHandler(object):
         logger.info("Got inference response: {}".format(data))
         return data
 
-    def draw_label(self, image, inference_result):
-        """
-        Draw infered label in top-left corner of the image
-        """
-        label = inference_result['outputs'][0]['labels']['predicted'][0]['label_name']
-        img = Image.open(io.BytesIO(image))
-        draw = ImageDraw.Draw(img)
-        draw.text((10, 10), label, self._config.font_color, font=self._config.font)
-        with io.BytesIO() as buff:
-            img.save(buff, format="JPEG")
-            return buff.getvalue()
-
     async def message_handler(self, image):
         # Perform inference
         if self._image_counter % self._config.process_each_n_frames == 0:
@@ -118,7 +81,7 @@ class MessageHandler(object):
 
         if self._config.draw_demo:
             # Draw label on the image
-            payload = self.draw_label(image, self._last_inference_result)
+            payload = draw_predictions(image, self._last_inference_result, hcentrate=True, valign=1, draw_only_first_tag=True)
         else:
             payload = json.dumps(self._last_inference_result).encode('utf8')
 
