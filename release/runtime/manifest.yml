@@ -30,7 +30,7 @@ spec:
       containers:
       - name: runtime
         image: ${DOCKER_IMAGE_NAME}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: AMQP_URL
           value: amqp://user:password@localhost:5672/nutanix
@@ -45,7 +45,7 @@ spec:
 
       - name: neural-worker
         image: ${NEURAL_WORKER_VERSION}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         # [PRODUCTION] For production:
         # If you have access to a GPU, remove the 'ALLOW_NO_GPU' line and replace it by:
@@ -66,7 +66,7 @@ spec:
 
       - name: resource-server
         image: ${RESOURCE_SERVER_VERSION}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - name: http
           containerPort: 8080
@@ -95,7 +95,7 @@ spec:
 
       - name: rabbitmq
         image: rabbitmq:3.6
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: RABBITMQ_DEFAULT_USER
           value: user

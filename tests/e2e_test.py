@@ -49,11 +49,7 @@ class Status(object):
 # --------------------------------------------------------------------------- #
 
 def read_test_image():
-    # Read test image
-    if len(sys.argv) > 1:
-        path = sys.argv[1]
-    else:
-        path = os.path.join(os.path.dirname(__file__), 'dog.jpg')
+    path = os.path.join(os.path.dirname(__file__), 'dog.jpg')
     with open(path, 'rb') as f:
         return f.read()
 
