@@ -25,7 +25,7 @@ spec:
         app: ${DEPLOYMENT_NAME}
     spec:
       restartPolicy: Always
-      ${DOCKER_HUB_SECRET_NAME}
+
 
       containers:
       - name: runtime
@@ -34,20 +34,23 @@ spec:
         env:
         - name: AMQP_URL
           value: amqp://user:password@localhost:5672/nutanix
-        - name: DRAW_DEMO
-          value: "1"
         - name: PROCESS_EACH_N_FRAMES
-          value: "25"
-        ${NATS_ENDPOINT}
-        ${NATS_SRC_TOPIC}
-        ${NATS_DST_TOPIC}
+          value: "50"
+        # [PRODUCTION] For production: remove the 'DRAW_DEMO' line below.
+        # The data forwarded by deepomatic App will then be a JSON dump of the recognition output.
+        # Refer to the documentation for a specification of the output:
+        # https://docs.deepomatic.com/deepomatic-api-v0-7/inference-output
+        - {name: DRAW_DEMO, value: "1"}
+
 
       - name: neural-worker
         image: ${NEURAL_WORKER_VERSION}
         imagePullPolicy: IfNotPresent
         env:
-        - name: ALLOW_NO_GPU
-          value: "1"
+        # [PRODUCTION] For production:
+        # If you have access to a GPU, remove the 'ALLOW_NO_GPU' line and replace it by:
+        # - {name: GPU_IDS, value: "0"}
+        - {name: ALLOW_NO_GPU, value: "1"}
         - name: AUTOSTART_WORKER
           value: "false"
         - name: AMQP_URL
@@ -61,7 +64,6 @@ spec:
             mountPath: /var/lib/deepomatic
 
 
-
       - name: resource-server
         image: ${RESOURCE_SERVER_VERSION}
         imagePullPolicy: IfNotPresent
@@ -71,6 +73,16 @@ spec:
         env:
         - name: DEEPOMATIC_API_URL
           value: https://api.deepomatic.com
+        # # [PRODUCTION] For production: uncomment those lines and directly fill in your credentials
+        # # This will allow you to deactivate the web service just below which is used only to fill
+        # # in the credentials
+        #
+        # - name: DEEPOMATIC_APP_ID
+        #   value: "012345678901" # Put your DEEPOMATIC_APP_ID here
+        # - name: DEEPOMATIC_API_KEY
+        #   value: "0123456789abcdef0123456789abcdef" # Put your DEEPOMATIC_API_KEY here
+        # - name: DEEPOMATIC_SITE_ID
+        #   value: "01234567-89ab-cdef-0123-456789abcdef" # Put your DEEPOMATIC_SITE_ID here
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
         - name: INIT_SYSTEM
@@ -92,20 +104,21 @@ spec:
         - name: RABBITMQ_DEFAULT_VHOST
           value: nutanix
 
-      ${NATS_SERVICE}
-
-
 ---
 
 kind: Service
 apiVersion: v1
 metadata:
  name: ${DEPLOYMENT_NAME}-nginx-svc
+ labels:
+   # This will show the launch button in the ui -- do not change
+   uilabel: show-play-http-aba0339ef5aea2602129ed45a63d7d7f
 spec:
  selector:
    app: ${DEPLOYMENT_NAME}
  ports:
  - protocol: TCP
    name: http
-   port: 8080
+   port: 8000
+   targetPort: http
  type: NodePort
