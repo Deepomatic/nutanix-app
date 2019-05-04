@@ -73,6 +73,8 @@ spec:
           value: "1"
         - name: INIT_SYSTEM
           value: circus
+        - name: VOUCHER
+          value: DotNext2019
         volumeMounts:
           - name: resource-server
             mountPath: /app
@@ -105,4 +107,5 @@ spec:
  - protocol: TCP
    name: http
    port: 8080
+   targetPort: http
  type: NodePort
