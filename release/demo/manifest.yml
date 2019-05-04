@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${DEPLOYMENT_NAME}
+  labels:
+    app: ${DEPLOYMENT_NAME}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ${DEPLOYMENT_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${DEPLOYMENT_NAME}
+    spec:
+      restartPolicy: Always
+
+      containers:
+      - name: runtime
+        image: ${DOCKER_IMAGE_NAME}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: AMQP_URL
+          value: amqp://user:password@localhost:5672/nutanix
+        - name: DRAW_DEMO
+          value: "1"
+        - name: PROCESS_EACH_N_FRAMES
+          value: "50"
+
+      - name: neural-worker
+        image: deepomatic/nutanix-app-demo:0.1.0-gesture
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ALLOW_NO_GPU
+          value: "1"
+        - name: AMQP_URL
+          value: amqp://user:password@localhost:5672/nutanix
+
+      - name: rabbitmq
+        image: rabbitmq:3.6
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: user
+        - name: RABBITMQ_DEFAULT_PASS
+          value: password
+        - name: RABBITMQ_DEFAULT_VHOST
+          value: nutanix
