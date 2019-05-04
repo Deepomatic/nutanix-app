@@ -31,7 +31,7 @@ class Config(object):
         amqp_url = os.getenv('AMQP_URL')
         if amqp_url is None:
             raise Exception('AMQP broker not provided in environment var AMQP_URL')
-        self.command_queue_name = os.getenv('WORKER_QUEUE', 'worker_queue')
+        self.command_queue_name = os.getenv('WORKER_QUEUE', 'default')
         self.amqp_client = Client(amqp_url)
         self.amqp_client.new_queue(self.command_queue_name)
         self.amqp_response_queue, self.amqp_consumer = self.amqp_client.new_consuming_queue()
