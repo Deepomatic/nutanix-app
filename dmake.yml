@@ -73,7 +73,6 @@ services:
           branches:
             - master
             - release
-            - dev-app-manifest
           kubernetes:
             context: main
             namespace: dev
