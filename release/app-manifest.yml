@@ -87,3 +87,22 @@ spec:
           value: password
         - name: RABBITMQ_DEFAULT_VHOST
           value: nutanix
+
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+ name: ${DEPLOYMENT_NAME}-nginx-svc
+ labels:
+   # This will show the launch button in the ui -- do not change
+   uilabel: show-play-http-aba0339ef5aea2602129ed45a63d7d7f
+spec:
+ selector:
+   app: ${DEPLOYMENT_NAME}
+ ports:
+ - protocol: TCP
+   name: http
+   port: 8080
+ type: NodePort

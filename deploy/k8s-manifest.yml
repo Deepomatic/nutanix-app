@@ -70,12 +70,6 @@ spec:
         env:
         - name: DEEPOMATIC_API_URL
           value: https://api.deepomatic.com
-        - name: DEEPOMATIC_APP_ID
-          value: "${DEEPOMATIC_APP_ID}"
-        - name: DEEPOMATIC_API_KEY
-          value: "${DEEPOMATIC_API_KEY}"
-        - name: DEEPOMATIC_SITE_ID
-          value: "${DEEPOMATIC_SITE_ID}"
         - name: DOWNLOAD_ON_STARTUP
           value: "1"
         - name: INIT_SYSTEM
@@ -96,3 +90,21 @@ spec:
           value: nutanix
 
       ${NATS_SERVICE}
+
+
+---
+
+kind: Service
+apiVersion: v1
+metadata:
+ name: ${DEPLOYMENT_NAME}-nginx-svc
+spec:
+ selector:
+   app: ${DEPLOYMENT_NAME}
+ ports:
+ - protocol: TCP
+   name: http
+   port: 8080
+   nodePort: 30090
+   targetPort: http
+ type: NodePort
