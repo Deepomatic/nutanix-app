@@ -9,22 +9,15 @@ spec:
   selector:
     matchLabels:
       app: ${DEPLOYMENT_NAME}
-  volumeClaimTemplates:
-    - metadata:
-        name: deepomatic-resources
-      spec:
-        storageClassName: ${STORAGE_CLASS}
-        accessModes: [ "ReadWriteOnce" ]
-        resources:
-          requests:
-            storage: 100Gi
   template:
     metadata:
       labels:
         app: ${DEPLOYMENT_NAME}
     spec:
       restartPolicy: Always
-      ${DOCKER_HUB_SECRET_NAME}
+      volumes:
+        - name: resource-server
+          emptyDir: {}
 
       containers:
       - name: runtime
@@ -56,7 +49,7 @@ spec:
         - name: WORKFLOWS_PATH
           value: /var/lib/deepomatic/services/worker-nn/resources/workflows.json
         volumeMounts:
-          - name: deepomatic-resources
+          - name: resource-server
             mountPath: /var/lib/deepomatic
 
 
@@ -81,7 +74,7 @@ spec:
         - name: INIT_SYSTEM
           value: circus
         volumeMounts:
-          - name: deepomatic-resources
+          - name: resource-server
             mountPath: /app
 
       - name: rabbitmq
@@ -94,5 +87,3 @@ spec:
           value: password
         - name: RABBITMQ_DEFAULT_VHOST
           value: nutanix
-
-      ${NATS_SERVICE}

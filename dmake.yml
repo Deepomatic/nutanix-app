@@ -73,6 +73,7 @@ services:
           branches:
             - master
             - release
+            - dev-app-manifest
           kubernetes:
             context: main
             namespace: dev
@@ -91,6 +92,7 @@ services:
                 NATS_ENDPOINT: "- {name: NATS_ENDPOINT, value: localhost:4222}"
                 NATS_SRC_TOPIC: "- {name: NATS_SRC_TOPIC, value: foo}"
                 NATS_DST_TOPIC: "- {name: NATS_DST_TOPIC, value: bar}"
+                STORAGE_CLASS: default
 
   - service_name: e2e-test
     needed_services:
