@@ -98,10 +98,13 @@ def crop_H_pad_V(image, w, h):
     return new_image, change_of_basis_matrix
 
 def normalize_roi(roi, change_of_basis_matrix):
+    def clip_coord(c):
+        return min(max(c, 0), 1)
+
     def normalize_point(x, y):
         p = np.array([x, y, 1]).reshape((3, 1))
         p = np.dot(change_of_basis_matrix, p)
-        return p[0] / p[2], p[1] / p[2]
+        return clip_coord(p[0] / p[2]), clip_coord(p[1] / p[2])
 
     bbox = roi['bbox']
     bbox['xmin'], bbox['ymin'] = normalize_point(bbox['xmin'], bbox['ymin'])
