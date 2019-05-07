@@ -35,7 +35,7 @@ spec:
         - name: AMQP_URL
           value: amqp://user:password@localhost:5672/nutanix
         - name: PROCESS_EACH_N_FRAMES
-          value: "50"
+          value: "30"
         # [PRODUCTION] For production: remove the 'DRAW_DEMO' line below.
         # The data forwarded by deepomatic App will then be a JSON dump of the recognition output.
         # Refer to the documentation for a specification of the output:

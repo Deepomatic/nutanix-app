@@ -4,8 +4,9 @@ set -e
 
 source $(dirname $0)/common.sh
 
-TEMPLATE=$1
-OUTPUT=$2
+export DEPLOYMENT_NAME=$1
+TEMPLATE=$2
+OUTPUT=$3
 
 eval "cat <<EOF
 $(<${TEMPLATE})
