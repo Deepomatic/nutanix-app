@@ -148,4 +148,5 @@ def test_fps():
 if __name__ == '__main__':
     test_draw_on_image()
     test_draw_on_json()
+    test_25_fps()
     test_fps()
