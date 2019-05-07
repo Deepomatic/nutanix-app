@@ -3,8 +3,10 @@
 set -e
 
 DEMO_IMAGE_NAME=deepomatic/nutanix-app-demo:0.1.0-gesture
-EXPORT_DIR=`pwd`/$(dirname $0)/app_export
-source $(dirname $0)/../scripts/common.sh
+
+ROOT=`pwd`/$(dirname $0)
+EXPORT_DIR=${ROOT}/app_export
+source ${ROOT}/../scripts/common.sh
 
 echo "Exporting resources to ${EXPORT_DIR}"
 
