@@ -133,6 +133,7 @@ def run_benchmark(expected_fps=None):
 
     effective_process_fps = N / (last_received - first_received)
     logger.info("Effective process fps: {}".format(effective_process_fps))
+    return effective_process_fps
 
 def test_25_fps():
     expected_fps = 25

@@ -119,7 +119,7 @@ services:
     tests:
       timeout: 60
       commands:
-        - pip install pytest && py.test -s
+        - pip3 install pytest && py.test -s
 
   - service_name: neural-worker
     needed_links:
