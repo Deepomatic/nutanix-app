@@ -100,6 +100,11 @@ def run_benchmark(expected_fps=None):
     first_received = None
     last_received = None
 
+    if expected_fps is None:
+        topic_suffix = 'BENCHMARK'
+    else:
+        topic_suffix = 'IMAGE'
+
     async def message_handler(payload):
         nonlocal N, counter, first_received, last_received
         last_received = time.time()
@@ -114,7 +119,7 @@ def run_benchmark(expected_fps=None):
             loop = asyncio.get_event_loop()
             loop.stop()
 
-    nats_helper = NATSHelper(nats_src_topic=os.getenv('NATS_DST_TOPIC_IMAGE'),  nats_dst_topic=os.getenv('NATS_SRC_TOPIC_IMAGE'))
+    nats_helper = NATSHelper(nats_src_topic=os.getenv('NATS_DST_TOPIC_{}'.format(topic_suffix)),  nats_dst_topic=os.getenv('NATS_SRC_TOPIC_{}'.format(topic_suffix)))
     image = read_test_image()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(nats_helper.connect(loop, message_handler))
