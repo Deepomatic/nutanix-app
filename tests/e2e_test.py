@@ -94,9 +94,8 @@ def test_draw_on_json():
 
     run_nats_loop(status, 'JSON', message_handler)
 
-def test_fps():
+def run_benchmark(expected_fps=None):
     N = 50  # number of frames to send
-    expected_fps = 25
     counter = 0
     first_received = None
     last_received = None
@@ -122,9 +121,10 @@ def test_fps():
 
     t = time.time()
     for i in range(N):
-        sleep_time = t + i / expected_fps - time.time()
-        if sleep_time > 0:
-            time.sleep(sleep_time)
+        if expected_fps is not None:
+            sleep_time = t + i / expected_fps - time.time()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
         loop.run_until_complete(nats_helper.publish(image))
     effective_send_fps = N / (time.time() - t)
     logger.info("Effective send fps: {}".format(effective_send_fps))
@@ -133,7 +133,14 @@ def test_fps():
 
     effective_process_fps = N / (last_received - first_received)
     logger.info("Effective process fps: {}".format(effective_process_fps))
+
+def test_25_fps():
+    expected_fps = 25
+    effective_process_fps = run_benchmark(expected_fps)
     assert abs(effective_process_fps - expected_fps) < 5
+
+def test_fps():
+    run_benchmark()
 
 
 # --------------------------------------------------------------------------- #
