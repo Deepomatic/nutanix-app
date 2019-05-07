@@ -99,13 +99,13 @@ def test_crop_v():
     img.save("result_crop_v.jpg")
 
 def test_crop_change_coords():
-    def make_roi():
+    def make_roi(margin=0):
         return {
             'bbox': {
-                'xmin': 0,
-                'ymin': 0,
-                'xmax': 1,
-                'ymax': 1,
+                'xmin': 0 + margin,
+                'ymin': 0 + margin,
+                'xmax': 1 - margin,
+                'ymax': 1 - margin,
             }
         }
 
@@ -114,18 +114,31 @@ def test_crop_change_coords():
     _, change_of_basis_matrix = utils.crop(img, 3 / 2)
     roi = make_roi()
     utils.normalize_roi(roi, change_of_basis_matrix)
-    assert roi['bbox']['xmin'] == pytest.approx(0.08208955)
-    assert roi['bbox']['ymin'] == pytest.approx(-0.12290503)
-    assert roi['bbox']['xmax'] == pytest.approx(0.91791045)
-    assert roi['bbox']['ymax'] == pytest.approx(1.12849162)
+    assert roi['bbox'] == {
+        'xmin': pytest.approx(0.08208955),
+        'ymin': pytest.approx(0),  # clipped to [0, 1]
+        'xmax': pytest.approx(0.91791045),
+        'ymax': pytest.approx(1),  # clipped to [0, 1]
+    }
+
+    roi = make_roi(margin=0.2)
+    utils.normalize_roi(roi, change_of_basis_matrix)
+    assert roi['bbox'] == {
+        'xmin': pytest.approx(0.24925373),
+        'ymin': pytest.approx(0.1273743),
+        'xmax': pytest.approx(0.75074627),
+        'ymax': pytest.approx(0.87821229),
+    }
 
     _, change_of_basis_matrix = utils.crop(img, 2 / 3)
-    roi = make_roi()
+    roi = make_roi(margin=0.2)
     utils.normalize_roi(roi, change_of_basis_matrix)
-    assert roi['bbox']['xmin'] == pytest.approx(-0.12290503)
-    assert roi['bbox']['ymin'] == pytest.approx(0.08178439)
-    assert roi['bbox']['xmax'] == pytest.approx(1.12849162)
-    assert roi['bbox']['ymax'] == pytest.approx(0.91449814)
+    assert roi['bbox'] == {
+        'xmin': pytest.approx(0.1273743),
+        'ymin': pytest.approx(0.24832714),
+        'xmax': pytest.approx(0.87821229),
+        'ymax': pytest.approx(0.74795539),
+    }
 
 
 if __name__ == '__main__':
