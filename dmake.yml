@@ -9,10 +9,13 @@ env:
       NUTANIX_RUNTIME_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
       NUTANIX_RUNTIME_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
       NUTANIX_RUNTIME_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+      NUTANIX_RUNTIME_DEV_SITE_ID: ${NUTANIX_RUNTIME_DEV_SITE_ID}
       NUTANIX_RUNTIME_VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}
 
       NATS_SRC_TOPIC_IMAGE: src_image
       NATS_DST_TOPIC_IMAGE: dst_image
+      NATS_SRC_TOPIC_BENCHMARK: src_benchmark
+      NATS_DST_TOPIC_BENCHMARK: dst_benchmark
       NATS_SRC_TOPIC_JSON: src_json
       NATS_DST_TOPIC_JSON: dst_json
 
@@ -104,11 +107,20 @@ services:
         env:
           DRAW_DEMO: 1
           FONT_COLOR: 4286f4
+          CROP_ASPECT_RATIO: 1.3333  # 4 / 3
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_IMAGE}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_IMAGE}
           PROCESS_EACH_N_FRAMES: 30
       - service_name: app
         env:
+          DRAW_DEMO: 1
+          FONT_COLOR: 4286f4
+          CROP_ASPECT_RATIO: 1.3333  # 4 / 3
+          NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_BENCHMARK}
+          NATS_DST_TOPIC: ${NATS_DST_TOPIC_BENCHMARK}
+      - service_name: app
+        env:
+          CROP_ASPECT_RATIO: 1.3333  # 4 / 3
           NATS_SRC_TOPIC: ${NATS_SRC_TOPIC_JSON}
           NATS_DST_TOPIC: ${NATS_DST_TOPIC_JSON}
     needed_links:
@@ -116,7 +128,7 @@ services:
     tests:
       timeout: 60
       commands:
-        - python tests/e2e_test.py
+        - pip3 install pytest && py.test -s
 
   - service_name: neural-worker
     needed_links:
@@ -145,7 +157,7 @@ services:
         DEEPOMATIC_API_URL: https://api.deepomatic.com
         DEEPOMATIC_APP_ID: ${NUTANIX_RUNTIME_APP_ID}
         DEEPOMATIC_API_KEY: ${NUTANIX_RUNTIME_API_KEY}
-        DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_SITE_ID}
+        DEEPOMATIC_SITE_ID: ${NUTANIX_RUNTIME_DEV_SITE_ID}
         DOWNLOAD_ON_STARTUP: 1
         INIT_SYSTEM: circus
         NUTANIX_RUNTIME_VOUCHER: ${NUTANIX_RUNTIME_VOUCHER}

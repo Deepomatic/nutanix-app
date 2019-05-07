@@ -94,12 +94,16 @@ def test_draw_on_json():
 
     run_nats_loop(status, 'JSON', message_handler)
 
-def test_fps():
+def run_benchmark(expected_fps=None):
     N = 50  # number of frames to send
-    expected_fps = 25
     counter = 0
     first_received = None
     last_received = None
+
+    if expected_fps is None:
+        topic_suffix = 'BENCHMARK'
+    else:
+        topic_suffix = 'IMAGE'
 
     async def message_handler(payload):
         nonlocal N, counter, first_received, last_received
@@ -115,16 +119,17 @@ def test_fps():
             loop = asyncio.get_event_loop()
             loop.stop()
 
-    nats_helper = NATSHelper(nats_src_topic=os.getenv('NATS_DST_TOPIC_IMAGE'),  nats_dst_topic=os.getenv('NATS_SRC_TOPIC_IMAGE'))
+    nats_helper = NATSHelper(nats_src_topic=os.getenv('NATS_DST_TOPIC_{}'.format(topic_suffix)),  nats_dst_topic=os.getenv('NATS_SRC_TOPIC_{}'.format(topic_suffix)))
     image = read_test_image()
     loop = asyncio.get_event_loop()
     loop.run_until_complete(nats_helper.connect(loop, message_handler))
 
     t = time.time()
     for i in range(N):
-        sleep_time = t + i / expected_fps - time.time()
-        if sleep_time > 0:
-            time.sleep(sleep_time)
+        if expected_fps is not None:
+            sleep_time = t + i / expected_fps - time.time()
+            if sleep_time > 0:
+                time.sleep(sleep_time)
         loop.run_until_complete(nats_helper.publish(image))
     effective_send_fps = N / (time.time() - t)
     logger.info("Effective send fps: {}".format(effective_send_fps))
@@ -133,7 +138,15 @@ def test_fps():
 
     effective_process_fps = N / (last_received - first_received)
     logger.info("Effective process fps: {}".format(effective_process_fps))
+    return effective_process_fps
+
+def test_25_fps():
+    expected_fps = 25
+    effective_process_fps = run_benchmark(expected_fps)
     assert abs(effective_process_fps - expected_fps) < 5
+
+def test_fps():
+    run_benchmark()
 
 
 # --------------------------------------------------------------------------- #
@@ -141,4 +154,5 @@ def test_fps():
 if __name__ == '__main__':
     test_draw_on_image()
     test_draw_on_json()
+    test_25_fps()
     test_fps()
