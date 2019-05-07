@@ -1,5 +1,6 @@
 deepomatic-rpc==0.8.0
 asyncio-nats-client==0.8.2
 Pillow==6.0.0
+numpy==1.16.3
 #----
 requests==2.21.0

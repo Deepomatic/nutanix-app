@@ -10,6 +10,7 @@ from deepomatic.rpc.helpers.v07_proto import create_images_input_mix, create_wor
 
 from nats_helper import NATSHelper
 from draw import draw_predictions
+import utils
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,11 @@ class Config(object):
 
         # Configure frames to process
         self.process_each_n_frames = int(os.getenv('PROCESS_EACH_N_FRAMES', '1'))
+
+        # Configure aspect ratio resizing (may be none)
+        self.crop_aspect_ratio = os.getenv('CROP_ASPECT_RATIO')
+        if self.crop_aspect_ratio is not None:
+            self.crop_aspect_ratio = float(self.crop_aspect_ratio)
 
         # Setup deepomatic Run RPC client
         amqp_url = os.getenv('AMQP_URL')
@@ -57,6 +63,11 @@ class MessageHandler(object):
         # Create a recognition command mix
         command = create_workflow_command_mix()
 
+        if self._config.crop_aspect_ratio is not None:
+            image, change_of_basis_matrix = utils.crop_and_dump(image, self._config.crop_aspect_ratio)
+        else:
+            change_of_basis_matrix = None
+
         # This assumes a mono-input network
         image_input = v07_ImageInput(source=b'data:image/*;binary,' + image)
         inputs = create_images_input_mix([image_input])
@@ -70,9 +81,16 @@ class MessageHandler(object):
         # Wait for response, `timeout=float('inf')` or `timeout=-1` for infinite wait, `timeout=None` for non blocking
         response = self._config.amqp_consumer.get(correlation_id, timeout=-1)
         # Put data as returned by Deepomatic API v0.7
-        data = {'outputs': [MessageToDict(o, preserving_proto_field_name=True, including_default_value_fields=True) for o in response.to_parsed_result_buffer()]}
-        logger.info("Got inference response: {}".format(data))
-        return data
+        inference_result = {'outputs': [MessageToDict(o, preserving_proto_field_name=True, including_default_value_fields=True) for o in response.to_parsed_result_buffer()]}
+
+        if change_of_basis_matrix is not None:
+            for prediction in inference_result['outputs'][0]['labels']['predicted']:
+                roi = prediction.get('roi')
+                if roi is not None:
+                    utils.normalize_roi(roi, change_of_basis_matrix)
+
+        logger.info("Got inference response: {}".format(inference_result))
+        return inference_result
 
     async def message_handler(self, image):
         # Perform inference

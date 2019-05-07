@@ -1,15 +1,13 @@
-import asyncio
+import pytest
 import os
 import sys
 import io
-import logging
-import json
-import time
 from PIL import Image
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'runtime'))
 
 import draw
+import utils
 
 tagging_payload = {
     "outputs": [{
@@ -53,24 +51,81 @@ detection_payload = {
     }]
 }
 
-def read_test_image():
-    path = os.path.join(os.path.dirname(__file__), 'screenshot.jpg')
+TEST_KWARGS = {
+    'hcentrate': True,
+    'valign': 1,
+    'draw_only_first_tag': True,
+}
+
+def read_test_image(filename):
+    path = os.path.join(os.path.dirname(__file__), filename)
     with open(path, 'rb') as f:
         return f.read()
 
-def display_draw_classif_result(kwargs):
+@pytest.mark.parametrize(
+    'kwargs', [TEST_KWARGS]
+)
+def test_display_draw_classif_result(kwargs):
     draw.FONT = None
-    img = read_test_image()
+    img = read_test_image('screenshot.jpg')
     payload = draw.draw_predictions(img, tagging_payload, **kwargs)
     img = Image.open(io.BytesIO(payload))
     img.save("result_classif.jpg")
 
-def display_draw_detect_result(kwargs):
+@pytest.mark.parametrize(
+    'kwargs', [TEST_KWARGS]
+)
+def test_display_draw_detect_result(kwargs):
     draw.FONT = None
-    img = read_test_image()
+    img = read_test_image('screenshot.jpg')
     payload = draw.draw_predictions(img, detection_payload, **kwargs)
     img = Image.open(io.BytesIO(payload))
     img.save("result_detect.jpg")
+
+def test_crop_h():
+    img = read_test_image('dog.jpg')
+    aspect_ratio = 4 / 3
+    img, _ = utils.crop(img, aspect_ratio)
+    w, h = img.size
+    assert w / h == pytest.approx(aspect_ratio)
+    img.save("result_crop_h.jpg")
+
+def test_crop_v():
+    img = read_test_image('dog.jpg')
+    aspect_ratio = 3 / 4
+    img, _ = utils.crop(img, aspect_ratio)
+    w, h = img.size
+    assert w / h == pytest.approx(aspect_ratio)
+    img.save("result_crop_v.jpg")
+
+def test_crop_change_coords():
+    def make_roi():
+        return {
+            'bbox': {
+                'xmin': 0,
+                'ymin': 0,
+                'xmax': 1,
+                'ymax': 1,
+            }
+        }
+
+    img = read_test_image('dog.jpg')
+
+    _, change_of_basis_matrix = utils.crop(img, 3 / 2)
+    roi = make_roi()
+    utils.normalize_roi(roi, change_of_basis_matrix)
+    assert roi['bbox']['xmin'] == pytest.approx(0.08208955)
+    assert roi['bbox']['ymin'] == pytest.approx(-0.12290503)
+    assert roi['bbox']['xmax'] == pytest.approx(0.91791045)
+    assert roi['bbox']['ymax'] == pytest.approx(1.12849162)
+
+    _, change_of_basis_matrix = utils.crop(img, 2 / 3)
+    roi = make_roi()
+    utils.normalize_roi(roi, change_of_basis_matrix)
+    assert roi['bbox']['xmin'] == pytest.approx(-0.12290503)
+    assert roi['bbox']['ymin'] == pytest.approx(0.08178439)
+    assert roi['bbox']['xmax'] == pytest.approx(1.12849162)
+    assert roi['bbox']['ymax'] == pytest.approx(0.91449814)
 
 
 if __name__ == '__main__':
@@ -79,5 +134,7 @@ if __name__ == '__main__':
         'valign': 1,
         'draw_only_first_tag': True,
     }
-    display_draw_classif_result(kwargs)
-    display_draw_detect_result(kwargs)
+    test_display_draw_classif_result(kwargs)
+    test_display_draw_detect_result(kwargs)
+    test_crop_h()
+    test_crop_v()
