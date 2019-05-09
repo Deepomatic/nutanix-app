@@ -27,11 +27,9 @@ spec:
           value: "1"
         - name: PROCESS_EACH_N_FRAMES
           value: "30"
-        # - name: CROP_ASPECT_RATIO
-        #   value: "1.33333"  # 4 / 3
 
       - name: neural-worker
-        image: deepomatic/nutanix-app-demo:0.1.0-gesture
+        image: deepomatic/nutanix-app-demo:0.1.0-stage
         imagePullPolicy: Always
         env:
         - name: ALLOW_NO_GPU
