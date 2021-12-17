@@ -77,7 +77,7 @@ services:
             - master
             - release
           kubernetes:
-            context: main
+            context: ${KUBERNETES_CONTEXT}
             namespace: dev
             manifest:
               template: deploy/k8s-manifest.yml
